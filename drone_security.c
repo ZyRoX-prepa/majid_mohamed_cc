@@ -3,6 +3,8 @@
 #include <float.h>
 #include <time.h>
 
+#define MAX_NEIGHBORS_3D 15
+
 struct Drone {
     int id;
     float x;
@@ -246,18 +248,26 @@ static struct PairResult closest_pair_rec(
 
         j = i + 1;
         compared = 0;
-        while (j < strip_size && compared < 15) {
+        /*
+         * Dans la bande centrale 3D, un nombre borné de voisins suffit
+         * pour conserver la complexité linéaire de l'étape de fusion.
+         */
+        while (j < strip_size && compared < MAX_NEIGHBORS_3D) {
             float dy;
             float dy2;
+            float dz;
+            float dz2;
 
             dy = (*(strip + j))->y - (*(strip + i))->y;
             dy2 = dy * dy;
+            dz = (*(strip + j))->z - (*(strip + i))->z;
+            dz2 = dz * dz;
 
             if (dy2 >= best.dist2) {
                 break;
             }
 
-            if (((*(strip + j))->z - (*(strip + i))->z) * ((*(strip + j))->z - (*(strip + i))->z) < best.dist2) {
+            if (dz2 < best.dist2) {
                 float d2;
                 d2 = distance_squared(*(strip + i), *(strip + j));
                 if (d2 < best.dist2) {
